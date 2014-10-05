@@ -28,7 +28,11 @@
 		local d = D2.new()
 		d:f()
 
- * Sprite类，封装了UI_MultiImgItem，拥有*Action方法， 以配合Action系统，具体参见Sprite.lua
+ * Node类，是Sprite和UINode的基类，拥有*Action方法， 以配合Action系统，具体参见Node.lua
+ 
+ * UINode类，继承于Node，用于封装UI_*, 使其能够拥有*Action方法，适用于Action系统，具体参见Node.lua
+ 
+ * Sprite类，继承于Node，封装了UI_MultiImgItem，可以用于系列帧动画，具体参见Sprite.lua
  
  * 强大的Action系统，用于制作各种特效，主要分两大类：即时Action和带时长的Action，如移动，缩放，延时，回调函数，动画，顺序系列，并发系列, 缓动系列，具体参见文件Action.lua, ActionInstant.lua, ActionEase.lua, ActionEngine.lua
  

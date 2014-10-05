@@ -133,3 +133,13 @@ function Node:getPos()
 	local prop = TASK_getProperty(self._node)
 	return {prop.x, prop.y}
 end
+
+UINode = classlite(Node)
+
+function UINode:ctor(ui)
+	self._node = ui
+end
+
+function UINode:setNode(ui)
+	self._node = ui
+end
