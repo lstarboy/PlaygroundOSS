@@ -1,0 +1,1 @@
+..\..\Engine\porting\Win32\Output\Debug\SampleProject.exe -e "./.publish/iphone/" -i "./.publish/iphone/"
