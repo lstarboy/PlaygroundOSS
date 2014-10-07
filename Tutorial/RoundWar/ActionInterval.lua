@@ -319,7 +319,7 @@ MoveTo = classlite(MoveBy)
 function  MoveTo:ctor(duration, x, y)
 	initActionInterval(self, duration)
 	self._endPos = {x, y}
-	syslog("endPos={" .. x .. "," .. y .. "}")
+	--syslog("endPos={" .. x .. "," .. y .. "}")
 end
 
 function MoveTo:startWithTarget(node)

@@ -20,7 +20,8 @@ function B:ctor()
 end
 
 function B:update()
-	superClass(B).update(self)
+	--superClass(B).update(self)
+	superClass(B):update()
 	thisClass(A).update(self)
 	syslog("B:update")
 end

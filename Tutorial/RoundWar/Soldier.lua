@@ -4,6 +4,15 @@ require("AnimationCache")
 local AnimationInterval = 0.125
 local AtkMoveTime = 0.5
 
+local function updateHP(self, time)
+	if time == nil then time = 500 end
+	local node = self._hpBar:node()
+	local prop = TASK_getProperty(node)
+	prop.t_anim = time
+	prop.value = self._hp / self._maxHp
+	TASK_setProperty(node, prop)
+end
+
 Soldier = classlite()
 -- userData={ atk=30, def=15, hp=100, longRange=true|false, atkEffect="" }
 function Soldier:ctor(parent, order, x, y, assetType, court, userData)
@@ -13,13 +22,23 @@ function Soldier:ctor(parent, order, x, y, assetType, court, userData)
 	self._dieAct 	= AnimationCache.getAnimationAct(assetType, "die")
 	self._defAct 	= AnimationCache.getAnimationAct(assetType, "hit")
 	self._idleAct	= AnimationCache.getAnimationAct(assetType, "stand")
+	self._order 	= order
 	self._court		= court
 	self._userData 	= userData
 	self._hp		= userData.hp
+	self._maxHp		= userData.hp
 	self._sprite 	= Sprite.new(parent, order, x, y, assetFiles, firstOffset)
 	self._sprite:setScaleX(court)
 	self._bodyWidth = self._idleAct.size[1][1]
 	self._bodyHeight= self._idleAct.size[1][2]
+
+	self._hpBar		= UINode.new(UI_ProgressBar(self._sprite:node(), order + 1, 0.5 * self._bodyWidth, -0.5 * self._bodyHeight, 400, 80,
+							"asset://ui/prog_h_full.png.imag",
+							"asset://ui/prog_h_empty.png.imag",
+							16, 381, 1000, false), 
+						{200, 40})
+	self._hpBar:setScale(0.2, 0.2)
+	updateHP(self, 0)
 end
 
 function Soldier:getUserData()
@@ -51,6 +70,7 @@ function Soldier:playDef(dmg)
 		self._hp = self._hp - dmg
 		callback = function() self:doIdle() end
 	end
+	updateHP(self)
 	local act1 = Sequence.new({Animate.new(self._defAct, AnimationInterval), Callback.new(callback)})
 	local act2 = Sequence.new({DelayTime.new(2 * AnimationInterval), 
 		Callback.new(function() self:showDmg(dmg) end)})
@@ -96,6 +116,7 @@ end
 
 function Soldier:doDie()
 	self._sprite:runAction(Sequence.new({ Animate.new(self._dieAct, AnimationInterval, false), 
+		Callback.new(function() self._hpBar:setVisible(false) end),
 		FadeOut.new(2), 
 		Callback.new(function() self._sprite:setVisible(false) end)
 	}))
@@ -109,6 +130,25 @@ function Soldier:doIdle()
 end
 
 function Soldier:showDmg(dmg)
+	syslog("dmg=" .. dmg)
+	--[[
+	local x, y = 0.5 * self._bodyWidth, -0.5 * self._bodyHeight
+	local texTable = {
+		"asset://ui/role_harm_num_0.png.imag",
+		"asset://ui/role_harm_num_1.png.imag",
+		"asset://ui/role_harm_num_2.png.imag",
+		"asset://ui/role_harm_num_3.png.imag",
+		"asset://ui/role_harm_num_4.png.imag",
+		"asset://ui/role_harm_num_5.png.imag",
+		"asset://ui/role_harm_num_6.png.imag",
+		"asset://ui/role_harm_num_7.png.imag",
+		"asset://ui/role_harm_num_8.png.imag",
+		"asset://ui/role_harm_num_9.png.imag"
+	}
+	local dmgNode = UINode.new(UI_Score(self._sprite:node(), self._order, 10,
+						x, y, texTable,	30, 0, 4, false, false))
+	--dmgNode:runAction()
+	--]]
 end
 
 --[[
@@ -126,14 +166,6 @@ function Soldier:changeOrder()
 end
 
 function Soldier:onAtkMoveCompleted()
-	--[[
-	syslog("Soldier:onAtkMoveCompleted")
-	do
-		--self:doIdle()
-		self._atkTarget:getSprite():stopAllActions()
-		return
-	end
-	--]]
 	local act1 = Sequence.new({ Animate.new(self._atkAct, AnimationInterval, true), 
 		Callback.new(function() self:atkBack() end)})
 	local act2 = Sequence.new({ DelayTime.new(4 * AnimationInterval),

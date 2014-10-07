@@ -15,6 +15,7 @@ function Node:clear(removeActions)
 	if removeActions == nil then removeActions = true end
 	if self._node ~= nil then
 		if removeActions then ActionEngine.removeAllActionsFromTarget(self) end
+		syslog("Task_kill node=" .. type(self._node))
 		Task_kill(self._node)
 		self._node = nil
 	end
@@ -122,24 +123,84 @@ function Node:getUserData()
 	return self._userdata
 end
 
-function Node:setPos(x, y)
+function Node:setPropPos(x, y)
 	local prop = TASK_getProperty(self._node)
 	prop.x = x
 	prop.y = y
 	TASK_setProperty(self._node, prop)
 end
 
-function Node:getPos()
+function Node:getPropPos()
 	local prop = TASK_getProperty(self._node)
 	return {prop.x, prop.y}
 end
 
+function Node:setPos(x, y)
+	self:setPropPos(x, y)
+end
+
+function Node:getPos()
+	return self:getPropPos()
+end
+
 UINode = classlite(Node)
 
-function UINode:ctor(ui)
-	self._node = ui
+local function updateUINodePos(self)
+	local prop = TASK_getProperty(self._node)
+	prop.x 	   = self._pt[1] - prop.scaleX * self._anchor[1]
+	prop.y     = self._pt[2] - prop.scaleY * self._anchor[2]
+	TASK_setProperty(self._node, prop)
 end
 
-function UINode:setNode(ui)
-	self._node = ui
+local function setUINodeWith(self, ui, anchorPt)
+	if anchorPt == nil then anchorPt = {0, 0} end
+	self._node     	= ui
+	self._anchor	= anchorPt
+
+	syslog("type(anchorPt)=" .. type(anchorPt))
+	syslog(table.tostring(anchorPt))
+
+	local prop = TASK_getProperty(ui)
+	self._pt 		= { prop.x, prop.y }
+	updateUINodePos(self)
 end
+
+function UINode:ctor(ui, anchorPt)
+	setUINodeWith(self, ui, anchorPt)
+end
+
+function UINode:setNode(ui, anchorPt)
+	setUINodeWith(self, ui, anchorPt)
+end
+
+function UINode:setPos(x, y)
+	self._pt = { x, y }
+	updateUINodePos(self)
+end
+
+function UINode:getPos()
+	return self._pt
+end
+
+function UINode:setScaleX(scaleX)
+	local prop = TASK_getProperty(self._node)
+	prop.scaleX = scaleX
+	TASK_setProperty(self._node, prop)
+	updateUINodePos(self)
+end
+
+function UINode:setScaleY(scaleY)
+	local prop = TASK_getProperty(self._node)
+	prop.scaleY = scaleY
+	TASK_setProperty(self._node, prop)
+	updateUINodePos(self)
+end
+
+function UINode:setScale(sx, sy)
+	local prop = TASK_getProperty(self._node)
+	prop.scaleX = sx
+	prop.scaleY = sy
+	TASK_setProperty(self._node, prop)
+	updateUINodePos(self)
+end
+

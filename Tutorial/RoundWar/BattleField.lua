@@ -3,6 +3,7 @@ require("Soldier")
 local sideSoldiers 		= {}
 local sideAtkIndices  	= {1, 1}
 local leftTurn = true
+local pForm = nil
 
 local function sortStandList(standList, leftSide)
 	return standList
@@ -19,6 +20,13 @@ local function newSideSoldiers(units, posList, court, firstOrder)
 	return soldierList
 end
 
+local function clearSideSoldiers(soldiers)
+	if soldiers == nil then return end
+	for _, soldier in ipairs(soldiers) do
+		soldier:getSprite():clear()
+	end
+end
+
 local function isSoldiersAllDead(soldiers)
 	for _,soldier in ipairs(soldiers) do
 		if not soldier:isDead() then return false end
@@ -26,15 +34,33 @@ local function isSoldiersAllDead(soldiers)
 	return true
 end
 
-local function doFight()
-	if isSoldiersAllDead(sideSoldiers[2]) then
-		syslog("You Win")
-		return 
+local function closeForm()
+	--clearSideSoldiers(sideSoldiers[1])
+	--clearSideSoldiers(sideSoldiers[2])
+	TASK_StageClear()
+	--[[
+	if pForm ~= nil then
+		Task_kill(pForm)
+		pForm = nil
 	end
+	--]]
+end
 
-	if isSoldiersAllDead(sideSoldiers[1]) then
-		syslog("You Lose")
-		return
+local function doFight()
+	local win 	= isSoldiersAllDead(sideSoldiers[2])
+	local lose  = isSoldiersAllDead(sideSoldiers[1])
+	if win or lose then
+		pForm = UI_Form(nil, 9000, 0, 0, "asset://ui_report.json", false)
+		sysCommand(pForm, UI_FORM_UPDATE_NODE, "btnRetry", FORM_NODE_VISIBLE, false)
+		sysCommand(pForm, UI_FORM_UPDATE_NODE, "lblRetry", FORM_NODE_VISIBLE, false)
+		if win then
+			sysCommand(pForm, UI_FORM_UPDATE_NODE, "failure", FORM_NODE_VISIBLE, false)
+		else
+			sysCommand(pForm, UI_FORM_UPDATE_NODE, "victory", FORM_NODE_VISIBLE, false)
+			sysCommand(pForm, UI_FORM_UPDATE_NODE, "star", FORM_NODE_VISIBLE, false)
+		end
+		TASK_StageOnly(pForm)
+		return 
 	end
 
 	local attackerIdx = leftTurn and 1 or 2
@@ -66,16 +92,13 @@ local function doFight()
 	attacker:playAtk(victim, dmg, doFight)
 end
 
-function setup()
-	AnimationCache.addAnimationFromFile("asset://spr_apple.json")
-	AnimationCache.addAnimationFromFile("asset://spr_hetao.json")
+function startFight()
+	sideSoldiers 		= {}
+	sideAtkIndices  	= {1, 1}
+	leftTurn = true
 
-	-- background
 	local screenSize = sysInfo()
 	syslog(table.tostring(screenSize))
-	local bgWidth, bgHeight = ASSET_getImageSize("asset://bj.png.imag")
-	local bgSprite = Sprite.new(nil, 6999, 0, 0, "asset://bj.png.imag")
-	bgSprite:setScale(screenSize.width / bgWidth, screenSize.height / bgHeight)
 
 	local leftStandPosList = {{x=295, y=500, scale=1}, {x=240, y=630, scale=0.96}, {x=96, y=630, scale=1}, {x=124, y=520, scale=0.96}, {x=171, y=440, scale=1}}
 	local rightStandPosList = {}
@@ -98,30 +121,56 @@ function setup()
 	sideSoldiers[1] 	= newSideSoldiers(leftUnits, leftStandPosList, 1, 7000)
 	sideSoldiers[2] 	= newSideSoldiers(rightUnits, rightStandPosList, -1, 8000)
 	doFight()
-	do return end
+end
 
-	local assetFiles, firstOffset = AnimationCache.getAnimationAssetFiles("apple")
-	local idleAct = AnimationCache.getAnimationAct("apple", "stand")
-	syslog(table.tostring(firstOffset))
-	local sprite = Sprite.new(nil, 7000, 518.15, 503.6, assetFiles, firstOffset)
+function OnRetry()
+	closeForm()
+	--startFight()
+	sysLoad("asset://BattleField.lua")
+end
+
+function OnExit()
+	syslog("OnExit")
+	closeForm()
+	sysExit()
+end
+
+function setup()
+	FONT_load("Georgia","asset://AlexBrush-Regular-OTF.otf")
+	AnimationCache.addAnimationFromFile("asset://spr_apple.json")
+	AnimationCache.addAnimationFromFile("asset://spr_hetao.json")
+
+	-- background
+	local screenSize = sysInfo()
+	syslog(table.tostring(screenSize))
+	local bgWidth, bgHeight = ASSET_getImageSize("asset://ui/bj.png.imag")
+	local bgSprite = Sprite.new(nil, 6999, 0, 0, "asset://ui/bj.png.imag")
+	bgSprite:setScale(screenSize.width / bgWidth, screenSize.height / bgHeight)
+
 	--[[
-	local assetFiles, firstOffset = AnimationCache.getAnimationAssetFiles("hetao")
-	local idleAct = AnimationCache.getAnimationAct("hetao", "stand")
-	local atkAct = AnimationCache.getAnimationAct("hetao", "attack")
-	sprite = Sprite.new(nil, 7000, 200, 200, assetFiles, firstOffset)
-	local seq = Sequence.new({Repeat.new(Animate.new(idleAct, 0.125, false), 2),
-		DelayTime.new(2), Callback.new(function() syslog("log") end),
-		--RepeatForever.new(Animate.new(atkAct, 0.125, false))
-		Callback.new(function() sprite:runAction(RepeatForever.new(Animate.new(atkAct, 0.125, false))) end) 
-		})
-	sprite:runAction(seq)
-	--sprite:runAction(Repeat.new(Animate.new(idleAct, 0.125, false), 10))
-	--sprite:runAction(Repeat.new(Animate.new(idleAct, 0.125, false), 10))
+	local leftStandPosList = {{x=295, y=500, scale=1}, {x=240, y=630, scale=0.96}, {x=96, y=630, scale=1}, {x=124, y=520, scale=0.96}, {x=171, y=440, scale=1}}
+	local rightStandPosList = {}
+	for k,v in ipairs(leftStandPosList) do
+		rightStandPosList[k] = {x = screenSize.width - v.x, y = v.y, scale=v.scale}
+	end
 
-	sprite2 = Sprite.new(nil, 7000, 200, 300, assetFiles, firstOffset)
-	--sprite2:setScaleX(-1)
-	sprite2:runAction(RepeatForever.new(Animate.new(atkAct, 0.125, false)))
+	local leftUnits = { 
+		{ type="apple", params={atk=100, def=20, hp=120, longRange=false}},
+	 	{ type="hetao", params={atk=130, def=40, hp=100, longRange=false}},
+	 	{ type="hetao", params={atk=130, def=40, hp=100, longRange=false}}
+	}
+
+	local rightUnits = { 
+		{ type="apple", params={atk=100, def=20, hp=120, longRange=false}},
+	 	{ type="hetao", params={atk=130, def=40, hp=100, longRange=false}},
+	 	{ type="apple", params={atk=110, def=30, hp=130, longRange=false}}
+	}
+
+	sideSoldiers[1] 	= newSideSoldiers(leftUnits, leftStandPosList, 1, 7000)
+	sideSoldiers[2] 	= newSideSoldiers(rightUnits, rightStandPosList, -1, 8000)
+	doFight()
 	--]]
+	startFight()
 end
 
 function execute(deltaT)
