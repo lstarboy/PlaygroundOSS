@@ -38,7 +38,7 @@
  
  * 定义动画格式，以json方式存储，具体例子参见spr_apple.json和spr_hetao.json
  
- * 工具SplitSprites(提供两种版本：windows版本和Mac版本)位于Tutorial\Assets目录，可将TexturePacker导出的plist导出为自定义的动画格式和Toboggan所能识别的Texture文件，使用例子：
+ * [工具SplitSprites](https://github.com/lstarboy/SplitSprites "工具SplitSprites")(Go语言开发，提供两种版本：windows版本和Mac版本)位于Tutorial\Assets目录，可将TexturePacker导出的plist导出为自定义的动画格式和Toboggan所能识别的Texture文件，使用例子：
  	
 		SplitSprites -i=apple.plist -c=true -e=true
 		
