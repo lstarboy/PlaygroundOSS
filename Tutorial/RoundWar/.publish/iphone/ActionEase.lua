@@ -1,5 +1,3 @@
-require("ActionInterval")
-
 -- ActionEase Definition Begin
 ActionEase = classlite(ActionInterval)
 

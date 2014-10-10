@@ -1,5 +1,4 @@
 --include("asset://Action.lua")
-require("Action")
 
 -- ActionInstant Definition Begin
 ActionInstant = classlite(FiniteTimeAction)

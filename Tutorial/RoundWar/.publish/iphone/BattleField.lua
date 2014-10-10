@@ -1,5 +1,3 @@
-require("Soldier")
-
 local sideSoldiers 		= {}
 local sideAtkIndices  	= {1, 1}
 local leftTurn = true

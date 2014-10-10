@@ -1,6 +1,3 @@
-require("Sprite")
-require("AnimationCache")
-
 local AnimationInterval = 0.125
 local AtkMoveTime = 0.5
 

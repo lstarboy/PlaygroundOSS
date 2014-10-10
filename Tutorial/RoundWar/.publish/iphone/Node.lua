@@ -1,6 +1,3 @@
-require("ActionEngine")
-require("Common")
-
 Node = classlite()
 
 function Node:ctor()

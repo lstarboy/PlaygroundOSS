@@ -1,5 +1,3 @@
-require("classlite")
-
 -- Action Definition Begin
 Action = classlite()
 

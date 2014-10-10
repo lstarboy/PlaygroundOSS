@@ -1,5 +1,3 @@
-require("Node")
-
 Sprite = classlite(Node)
 
 local function updateDisplay(self)

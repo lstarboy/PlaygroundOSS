@@ -1,5 +1,3 @@
-require("classlite")
-
 A = classlite()
 
 function A:ctor()

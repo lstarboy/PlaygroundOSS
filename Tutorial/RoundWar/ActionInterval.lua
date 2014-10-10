@@ -1,6 +1,4 @@
 --include("asset://Action.lua")
-require("Action")
-require("AnimationCache")
 
 --/* smallest such that 1.0+FLT_EPSILON != 1.0 */
 local FLT_EPSILON = 1.192092896e-07

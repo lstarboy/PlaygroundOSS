@@ -1,7 +1,3 @@
-require("ActionInterval")
-require("ActionInstant")
-require("ActionEase")
-
 local AM = {}
 local _elements 	= {}
 local _removedList	= {}
